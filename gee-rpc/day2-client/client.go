@@ -1,6 +1,7 @@
 package geerpc
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"geerpc/codec"
@@ -120,6 +121,12 @@ func NewClient(conn net.Conn, opt *Option) (*Client, error) {
 	if f == nil {
 		err := fmt.Errorf("unsupported codec type: %s", opt.CodecType)
 		log.Println("rpc client: codec error:", err)
+		return nil, err
+	}
+	// send options with server
+	if err := json.NewEncoder(conn).Encode(opt); err != nil {
+		log.Println("rpc client: send options error:", err)
+		_ = conn.Close()
 		return nil, err
 	}
 	return newClientCodec(f(conn), opt), nil
